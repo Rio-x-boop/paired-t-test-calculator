@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STAT ∑t | Paired T-Test</title>
+
+<style>
+:root{
+  --primary:#007bff;
+  --neon:#00f2ff;
+  --success:#28a745;
+  --danger:#dc3545;
+}
+
+/* RESET */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Segoe UI",Arial,sans-serif;
+  background:#f4f6fb;
+}
+
+/* SPLASH */
+#splash{
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top,#021b79,#000814);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.splash-card{
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(18px);
+  border-radius:28px;
+  padding:40px 35px;
+  text-align:center;
+  width:340px;
+  color:white;
+}
+.logo{
+  width:140px;height:140px;
+  margin:auto;border-radius:50%;
+  background:linear-gradient(145deg,#fff,#bfefff);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px var(--neon);
+}
+.logo span{font-size:54px;font-weight:800;color:var(--primary)}
+#startBtn{
+  margin-top:25px;
+  padding:14px 32px;
+  border:none;border-radius:40px;
+  background:white;color:#007bff;
+  font-weight:700;cursor:pointer;
+}
+
+/* MAIN */
+#app{display:none}
+.container{
+  max-width:950px;
+  margin:20px auto;
+  background:white;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 8px 25px rgba(0,0,0,.1);
+}
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+.mini-logo{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(145deg,#fff,#cdeeff);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--primary);
+}
+
+/* LOADING */
+#loading{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,.9);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border-radius:18px;
+}
+.spinner{
+  width:60px;height:60px;
+  border:6px solid #ddd;
+  border-top:6px solid var(--primary);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DATA */
+.section-card{
+  position:relative;
+  border-radius:18px;
+  padding:20px;
+  margin-top:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+thead{
+  background:linear-gradient(135deg,#007bff,#00c6ff);
+  color:white;
+}
+th,td{
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center;
+}
+input[type=number]{
+  width:90%;
+  padding:6px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+.primary{background:var(--success);color:white}
+.secondary{background:var(--primary);color:white}
+.danger{background:var(--danger);color:white}
+.tail-selection{text-align:center;margin:15px}
+
+/* ===== CREATIVE RESULT DESIGN ===== */
+.result-box{
+  margin-top:25px;
+  background:linear-gradient(135deg,#f0f7ff,#ffffff);
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 12px 30px rgba(0,123,255,.15);
+  font-family:monospace;
+}
+
+.result-item{
+  display:flex;
+  gap:14px;
+  padding:14px 16px;
+  border-radius:14px;
+  margin-bottom:12px;
+  background:white;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+}
+
+.result-number{
+  min-width:36px;
+  height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#007bff,#00c6ff);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+.result-text{
+  white-space:pre-wrap;
+}
+
+.final{
+  margin-top:18px;
+  padding:16px;
+  border-radius:16px;
+  text-align:center;
+  font-weight:800;
+  letter-spacing:1px;
+  font-size:16px;
+}
+
+.accept{
+  background:linear-gradient(135deg,#d4edda,#b7f0c2);
+  color:#155724;
+}
+
+.reject{
+  background:linear-gradient(135deg,#f8d7da,#f3b6bd);
+  color:#721c24;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-card">
+    <div class="logo"><span>∑t</span></div>
+    <h1>STAT ∑t</h1>
+    <p>Paired T-Test Calculator</p>
+    <button onclick="startApp()">ENTER APP</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="container">
+
+    <div class="app-header">
+      <div class="mini-logo">∑t</div>
+      <h1>Paired T-Test Calculator</h1>
+    </div>
+
+    <div class="section-card">
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Preparing input data…</p>
+      </div>
+
+      <table id="dataTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Pair</th>
+            <th>Pre-Test</th>
+            <th>Post-Test</th>
+            <th>d</th>
+            <th>d²</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+
+      <br>
+      <button class="secondary" onclick="addRow()">➕ Add Row</button>
+      <button class="danger" onclick="removeRow()">➖ Remove Row</button>
+    </div>
+
+    <div class="tail-selection">
+      <label><input type="radio" name="tail" value="two" checked> Two-tailed</label>
+      <label><input type="radio" name="tail" value="one"> One-tailed</label>
+    </div>
+
+    <button class="primary" onclick="calculate()">📊 Calculate</button>
+
+    <div id="output" class="result-box"></div>
+
+  </div>
+</div>
+
+<script>
+function startApp(){
+  splash.style.display="none";
+  app.style.display="block";
+  setTimeout(()=>{
+    loading.style.display="none";
+    dataTable.style.display="table";
+  },1500);
+}
+
+let count=0;
+function addRow(){
+  count++;
+  rows.innerHTML+=`
+  <tr>
+    <td>${count}</td>
+    <td><input type="number" oninput="compute(this)"></td>
+    <td><input type="number" oninput="compute(this)"></td>
+    <td>0</td>
+    <td>0</td>
+  </tr>`;
+}
+function removeRow(){
+  if(count>2){rows.lastElementChild.remove();count--}
+}
+for(let i=0;i<5;i++)addRow();
+
+function compute(input){
+  const r=input.parentElement.parentElement;
+  const pre=+r.children[1].firstChild.value;
+  const post=+r.children[2].firstChild.value;
+  if(!isNaN(pre)&&!isNaN(post)){
+    const d=pre-post;
+    r.children[3].innerText=d.toFixed(2);
+    r.children[4].innerText=(d*d).toFixed(2);
+  }
+}
+
+const tTwo={1:12.706,2:4.303,3:3.182,4:2.776,5:2.571,6:2.447,7:2.365,8:2.306,9:2.262,10:2.228};
+const tOne={1:6.314,2:2.920,3:2.353,4:2.132,5:2.015,6:1.943,7:1.895,8:1.860,9:1.833,10:1.812};
+
+function tCritical(df,tail){
+  if(df>=30) return tail==="one"?1.697:1.96;
+  return tail==="one"?tOne[df]:tTwo[df];
+}
+
+function calculate(){
+  const d=[];
+  document.querySelectorAll("#rows tr").forEach(r=>{
+    const v=+r.children[3].innerText;
+    if(!isNaN(v))d.push(v);
+  });
+
+  const n=d.length;
+  const df=n-1;
+  const mean=d.reduce((a,b)=>a+b,0)/n;
+  const sd=Math.sqrt(d.reduce((s,v)=>s+(v-mean)**2,0)/df);
+  const t=mean/(sd/Math.sqrt(n));
+
+  const tail=document.querySelector('input[name=tail]:checked').value;
+  const crit=tCritical(df,tail);
+  const decision=(tail==="two"?Math.abs(t)>crit:t>crit)?"rejected":"accepted";
+
+  output.innerHTML=`
+<div class="result-item">
+  <div class="result-number">1</div>
+  <div class="result-text">
+Null Hypothesis (H₀)
+No significant difference between Pre-Test and Post-Test.
+  </div>
+</div>
+
+<div class="result-item">
+  <div class="result-number">2</div>
+  <div class="result-text">
+Degree of Freedom
+= ${df}
+  </div>
+</div>
+
+<div class="result-item">
+  <div class="result-number">3</div>
+  <div class="result-text">
+Level of Significance
+= 0.05
+  </div>
+</div>
+
+<div class="result-item">
+  <div class="result-number">4</div>
+  <div class="result-text">
+Critical Value
+= ${crit}
+  </div>
+</div>
+
+<div class="result-item">
+  <div class="result-number">5</div>
+  <div class="result-text">
+Computed Value
+t = ${t.toFixed(4)}
+  </div>
+</div>
+
+<div class="result-item">
+  <div class="result-number">6</div>
+  <div class="result-text">
+Decision
+Null hypothesis is ${decision}.
+  </div>
+</div>
+
+<div class="final ${decision}">
+NULL HYPOTHESIS IS ${decision.toUpperCase()}
+</div>
+`;
+}
+</script>
+
+</body>
+</html>
